@@ -339,7 +339,49 @@ void addAllInFolder(HFSCatalogNodeID folderID, Volume* volume, const char* paren
 			list = list->next;
 		}
 		
-		if((tmp = opendir(ent->d_name)) != NULL) {
+        struct stat st;
+        ASSERT (lstat(ent->d_name, &st) == 0, "lstat");
+
+        if(S_ISLNK(st.st_mode))
+        {
+            printf("link: %s\n", fullName);	fflush(stdout);
+
+            io_func* io;
+            HFSPlusCatalogFile* record;
+
+            record = (HFSPlusCatalogFile*) getRecordFromPath3(fullName, volume, NULL, NULL, TRUE, FALSE, kHFSRootFolderID);
+
+            if(!record)
+            {
+                newFile(fullName, volume);
+                record = (HFSPlusCatalogFile*) getRecordFromPath(fullName, volume, NULL, NULL);
+                if(record)
+                {
+                    record->permissions.fileMode |= S_IFLNK;
+                    record->userInfo.fileType = kSymLinkFileType;
+                    record->userInfo.fileCreator = kSymLinkCreator;
+                    updateCatalog(volume, (HFSPlusCatalogRecord*) record);
+
+                    io = openRawFile(record->fileID, &record->dataFork, (HFSPlusCatalogRecord*) record, volume);
+
+                    char target[1024 + 1] = {'\0'};
+                    int rv = readlink(ent->d_name, target, 1024);
+
+                    printf("file link: %s %s\n", ent->d_name, target);	fflush(stdout);
+
+                    if (rv != -1)
+                    {
+                        WRITE(io, 0, strlen(target), (void*) target);
+                    }
+                    CLOSE(io);
+                }
+            }
+
+
+            free(record);
+
+        }
+        else if((tmp = opendir(ent->d_name)) != NULL) {
 			closedir(tmp);
 			printf("folder: %s\n", fullName); fflush(stdout);
 			
