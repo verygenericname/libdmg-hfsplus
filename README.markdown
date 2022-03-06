@@ -34,7 +34,7 @@ The HFS portion will work on any platform that supports GNU C and POSIX
 conventions. The dmg portion has dependencies on zlib and optionally on
 libcrypto from openssl. If libcrypto is not available, then all FileVault
 related actions will fail, but everything else should still work. To
-deliberately disable FileVault support, use `-DCMAKE_C_FLAGS=-UHAVE_CRYPT`.
+deliberately disable FileVault support, use `CFLAGS=-UHAVE_CRYPT`.
 
 USING
 -----
