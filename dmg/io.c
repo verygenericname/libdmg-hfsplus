@@ -7,7 +7,7 @@
 #include <dmg/adc.h>
 #include <inttypes.h>
 
-#define SECTORS_AT_A_TIME 0x200
+#define SECTORS_AT_A_TIME 0x800
 
 BLKXTable* insertBLKX(AbstractFile* out, AbstractFile* in, uint32_t firstSectorNumber, uint32_t numSectors, uint32_t blocksDescriptor,
 			uint32_t checksumType, ChecksumFunc uncompressedChk, void* uncompressedChkToken, ChecksumFunc compressedChk,
@@ -36,7 +36,7 @@ BLKXTable* insertBLKX(AbstractFile* out, AbstractFile* in, uint32_t firstSectorN
 	blkx->firstSectorNumber = firstSectorNumber;
 	blkx->sectorCount = numSectors;
 	blkx->dataStart = 0;
-	blkx->decompressBufferRequested = 0x208;
+	blkx->decompressBufferRequested = SECTORS_AT_A_TIME + 8;
 	blkx->blocksDescriptor = blocksDescriptor;
 	blkx->reserved1 = 0;
 	blkx->reserved2 = 0;
