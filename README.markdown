@@ -31,41 +31,28 @@ DEPENDENCIES
 ------------
 
 The HFS portion will work on any platform that supports GNU C and POSIX
-conventions. The dmg portion has dependencies on zlib (which is included) and
-libcrypto from openssl (which is not). If libcrypto is not available, remove
-the -DHAVE_CRYPT flags from the CFLAGS of the makefiles. All FileVault
-related actions will fail, but everything else should still work. I imagine
-most places have libcrypto, and probably statically compiled zlib was a dumb
-idea too.
+conventions. The dmg portion has dependencies on zlib and optionally on
+libcrypto from openssl. If libcrypto is not available, then all FileVault
+related actions will fail, but everything else should still work. To
+deliberately disable FileVault support, use `-DCMAKE_C_FLAGS=-UHAVE_CRYPT`.
 
 USING
 -----
 
 The targets of the current repository are three command-line utilities that
-demonstrate the usage of the library functions (except cmd_grow, which really
-ought to be moved to catalog.c). To make compilation simpler, a complete,
-unmodified copy of the zlib distribution is included. The dmg portion of the
-code has dependencies on the HFS+ portion of the code. The "hdutil" section
+demonstrate the usage of the library functions. The dmg portion of the code
+has dependencies on the HFS+ portion of the code. The "hdutil" section
 contains a version of the HFS+ utility that supports directly reading from
 dmgs. It is separate from the HFS+ utility in order that the hfs directory
 does not have dependencies on the dmg directory.
 
-The makefile in the root folder will make all utilities.
+To build everything:
 
-### HFS+
+    cmake .
+    make
 
-	cd hfs
-	make
+After running cmake, individual projects can also be built like:
 
-### DMG
-
-	cd dmg/zlib-1.2.3
-	./configure
-	make
-	cd ..
-	make
-
-### hdutil
-	cd hdiutil
-	make
-
+    make -C hfs
+    make -C dmg
+    make -C hdutil
