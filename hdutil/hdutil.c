@@ -259,7 +259,7 @@ int main(int argc, const char *argv[]) {
 	TestByteOrder();
 	
 	if(argc < 3) {
-		printf("usage: %s <image-file> (-k <key>) <ls|cat|mv|mkdir|add|rm|chmod|extract|extractall|rmall|addall|grow|untar> <arguments>\n", argv[0]);
+		printf("usage: %s <image-file> (-k <key>) <ls|cat|mv|symlink|mkdir|add|rm|chmod|extract|extractall|rmall|addall|grow|untar> <arguments>\n", argv[0]);
 		return 0;
 	}
 
@@ -297,8 +297,8 @@ int main(int argc, const char *argv[]) {
 			cmd_cat(volume, argc - argOff, argv + argOff);
 		} else if(strcmp(argv[argOff], "mv") == 0) {
 			cmd_mv(volume, argc - argOff, argv + argOff);
-		} else if(strcmp(argv[2], "symlink") == 0) {
-			cmd_symlink(volume, argc - 2, argv + 2);
+		} else if(strcmp(argv[argOff], "symlink") == 0) {
+			cmd_symlink(volume, argc - argOff, argv + argOff);
 		} else if(strcmp(argv[argOff], "mkdir") == 0) {
 			cmd_mkdir(volume, argc - argOff, argv + argOff);
 		} else if(strcmp(argv[argOff], "add") == 0) {
