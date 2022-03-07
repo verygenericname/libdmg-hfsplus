@@ -48,14 +48,15 @@ void cmd_extract(Volume* volume, int argc, const char *argv[]) {
 	AbstractFile *outFile;
 
 	if(argc < 3) {
-		printf("Not enough arguments");
+		printf("Not enough arguments\n");
 		return;
 	}
 
 	outFile = createAbstractFileFromFile(fopen(argv[2], "wb"));
 
 	if(outFile == NULL) {
-		printf("cannot create file");
+		printf("cannot create file\n");
+		return;
 	}
 
 	record = getRecordFromPath(argv[1], volume, NULL, NULL);
@@ -77,7 +78,7 @@ void cmd_mv(Volume* volume, int argc, const char *argv[]) {
 	if(argc > 2) {
 		move(argv[1], argv[2], volume);
 	} else {
-		printf("Not enough arguments");
+		printf("Not enough arguments\n");
 	}
 }
 
@@ -85,7 +86,7 @@ void cmd_symlink(Volume* volume, int argc, const char *argv[]) {
 	if(argc > 2) {
 		makeSymlink(argv[1], argv[2], volume);
 	} else {
-		printf("Not enough arguments");
+		printf("Not enough arguments\n");
 	}
 }
 
@@ -93,7 +94,7 @@ void cmd_mkdir(Volume* volume, int argc, const char *argv[]) {
 	if(argc > 1) {
 		newFolder(argv[1], volume);
 	} else {
-		printf("Not enough arguments");
+		printf("Not enough arguments\n");
 	}
 }
 
@@ -101,14 +102,14 @@ void cmd_add(Volume* volume, int argc, const char *argv[]) {
 	AbstractFile *inFile;
 
 	if(argc < 3) {
-		printf("Not enough arguments");
+		printf("Not enough arguments\n");
 		return;
 	}
 
 	inFile = createAbstractFileFromFile(fopen(argv[1], "rb"));
 
 	if(inFile == NULL) {
-		printf("file to add not found");
+		printf("file to add not found\n");
 	}
 
 	add_hfs(volume, inFile, argv[2]);
@@ -118,7 +119,7 @@ void cmd_rm(Volume* volume, int argc, const char *argv[]) {
 	if(argc > 1) {
 		removeFile(argv[1], volume);
 	} else {
-		printf("Not enough arguments");
+		printf("Not enough arguments\n");
 	}
 }
 
@@ -129,7 +130,7 @@ void cmd_chmod(Volume* volume, int argc, const char *argv[]) {
 		sscanf(argv[1], "%o", &mode);
 		chmodFile(argv[2], mode, volume);
 	} else {
-		printf("Not enough arguments");
+		printf("Not enough arguments\n");
 	}
 }
 
@@ -197,7 +198,7 @@ void cmd_rmall(Volume* volume, int argc, const char *argv[]) {
 
 void cmd_addall(Volume* volume, int argc, const char *argv[]) {
 	if(argc < 2) {
-		printf("Not enough arguments");
+		printf("Not enough arguments\n");
 		return;
 	}
 
@@ -228,14 +229,15 @@ void cmd_untar(Volume* volume, int argc, const char *argv[]) {
 	AbstractFile *inFile;
 
 	if(argc < 2) {
-		printf("Not enough arguments");
+		printf("Not enough arguments\n");
 		return;
 	}
 
 	inFile = createAbstractFileFromFile(fopen(argv[1], "rb"));
 
 	if(inFile == NULL) {
-		printf("file to untar not found");
+		printf("file to untar not found\n");
+		return;
 	}
 
 	hfs_untar(volume, inFile);
