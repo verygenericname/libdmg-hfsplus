@@ -123,22 +123,36 @@ void cmd_rm(Volume* volume, int argc, const char *argv[]) {
 }
 
 void cmd_chmod(Volume* volume, int argc, const char *argv[]) {
+	int argOff = 1;
 	int mode;
+	char recursive = FALSE;
 
-	if(argc > 2) {
-		sscanf(argv[1], "%o", &mode);
-		chmodFile(argv[2], mode, volume);
+	if(argc > argOff && strcmp(argv[argOff], "-R") == 0) {
+		recursive = TRUE;
+		++argOff;
+	}
+
+	if(argc > argOff + 1) {
+		sscanf(argv[argOff], "%o", &mode);
+		chmodPath(argv[argOff+1], mode, volume, recursive);
 	} else {
 		printf("Not enough arguments\n");
 	}
 }
 
 void cmd_chown(Volume* volume, int argc, const char *argv[]) {
+	int argOff = 1;
 	uint32_t owner = 0, group = 0;
+	char recursive = FALSE;
 
-	if(argc > 2) {
-		sscanf(argv[1], "%u:%u", &owner, &group);
-		chownFile(argv[2], owner, group, volume);
+	if(argc > argOff && strcmp(argv[argOff], "-R") == 0) {
+		recursive = TRUE;
+		++argOff;
+	}
+
+	if(argc > argOff + 1) {
+		sscanf(argv[argOff], "%u:%u", &owner, &group);
+		chownPath(argv[argOff+1], owner, group, volume, recursive);
 	} else {
 		printf("Not enough arguments\n");
 	}

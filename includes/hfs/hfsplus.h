@@ -549,6 +549,8 @@ extern "C" {
 	HFSCatalogNodeID newFile(const char* pathName, Volume* volume);
 	int chmodFile(const char* pathName, int mode, Volume* volume);
 	int chownFile(const char* pathName, uint32_t owner, uint32_t group, Volume* volume);
+	int chmodPath(const char* pathName, int mode, Volume* volume, char recursive);
+	int chownPath(const char* pathName, uint32_t owner, uint32_t group, Volume* volume, char recursive);
 	int makeSymlink(const char* pathName, const char* target, Volume* volume);
 
 	HFSCatalogNodeID getMetadataDirectoryID(Volume* volume);

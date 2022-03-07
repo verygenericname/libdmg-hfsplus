@@ -1109,17 +1109,22 @@ HFSCatalogNodeID newFile(const char* pathName, Volume* volume) {
   return newFileID;
 }
 
-int chmodFile(const char* pathName, int mode, Volume* volume) {
-  HFSPlusCatalogRecord* record;
-
-  record = getRecordFromPath(pathName, volume, NULL, NULL);
-
-  if(record == NULL) {
-    return FALSE;
-  }
-
+static int chmodRecord(HFSPlusCatalogRecord* record, int mode, Volume* volume, char recursive) {
+  int rv = TRUE;
   if(record->recordType == kHFSPlusFolderRecord) {
     ((HFSPlusCatalogFolder*)record)->permissions.fileMode = (((HFSPlusCatalogFolder*)record)->permissions.fileMode & 0770000) | mode;
+    if(recursive) {
+      CatalogRecordList *list, *theList;
+      theList = list = getFolderContents(((HFSPlusCatalogFolder*)record)->folderID, volume);
+      while(list != NULL) {
+        int r = chmodRecord(list->record, mode, volume, TRUE);
+        if(r != TRUE) {
+          rv = FALSE;
+        }
+        list = list->next;
+      }
+      releaseCatalogRecordList(theList);
+    }
   } else if(record->recordType == kHFSPlusFileRecord) {
     ((HFSPlusCatalogFile*)record)->permissions.fileMode = (((HFSPlusCatalogFolder*)record)->permissions.fileMode & 0770000) | mode;
   } else {
@@ -1128,23 +1133,26 @@ int chmodFile(const char* pathName, int mode, Volume* volume) {
 
   updateCatalog(volume, record);
 
-  free(record);
-
-  return TRUE;
+  return rv;
 }
 
-int chownFile(const char* pathName, uint32_t owner, uint32_t group, Volume* volume) {
-  HFSPlusCatalogRecord* record;
-
-  record = getRecordFromPath(pathName, volume, NULL, NULL);
-
-  if(record == NULL) {
-    return FALSE;
-  }
-
+static int chownRecord(HFSPlusCatalogRecord* record, uint32_t owner, uint32_t group, Volume* volume, char recursive) {
+  int rv = TRUE;
   if(record->recordType == kHFSPlusFolderRecord) {
     ((HFSPlusCatalogFolder*)record)->permissions.ownerID = owner;
     ((HFSPlusCatalogFolder*)record)->permissions.groupID = group;
+    if(recursive) {
+      CatalogRecordList *list, *theList;
+      theList = list = getFolderContents(((HFSPlusCatalogFolder*)record)->folderID, volume);
+      while(list != NULL) {
+        int r = chownRecord(list->record, owner, group, volume, TRUE);
+        if(r != TRUE) {
+          rv = FALSE;
+        }
+        list = list->next;
+      }
+      releaseCatalogRecordList(theList);
+    }
   } else if(record->recordType == kHFSPlusFileRecord) {
     ((HFSPlusCatalogFile*)record)->permissions.ownerID = owner;
     ((HFSPlusCatalogFile*)record)->permissions.groupID = group;
@@ -1154,11 +1162,49 @@ int chownFile(const char* pathName, uint32_t owner, uint32_t group, Volume* volu
 
   updateCatalog(volume, record);
 
-  free(record);
-
-  return TRUE;
+  return rv;
 }
 
+int chmodPath(const char* pathName, int mode, Volume* volume, char recursive) {
+  HFSPlusCatalogRecord* record;
+
+  record = getRecordFromPath(pathName, volume, NULL, NULL);
+
+  if(record == NULL) {
+    return FALSE;
+  }
+
+  int rv = chmodRecord(record, mode, volume, recursive);
+
+  free(record);
+
+  return rv;
+}
+
+int chownPath(const char* pathName, uint32_t owner, uint32_t group, Volume* volume, char recursive) {
+  HFSPlusCatalogRecord* record;
+
+  record = getRecordFromPath(pathName, volume, NULL, NULL);
+
+  if(record == NULL) {
+    return FALSE;
+  }
+
+  int rv = chownRecord(record, owner, group, volume, recursive);
+
+  free(record);
+
+  return rv;
+}
+
+// Keep for library compatibility
+int chmodFile(const char* pathName, int mode, Volume* volume) {
+  chmodPath(pathName, mode, volume, FALSE);
+}
+
+int chownFile(const char* pathName, uint32_t owner, uint32_t group, Volume* volume) {
+  chownPath(pathName, owner, group, volume, FALSE);
+}
 
 BTree* openCatalogTree(io_func* file) {
   BTree* btree;
