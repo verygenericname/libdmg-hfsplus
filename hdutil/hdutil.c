@@ -110,6 +110,7 @@ void cmd_add(Volume* volume, int argc, const char *argv[]) {
 
 	if(inFile == NULL) {
 		printf("file to add not found\n");
+		return;
 	}
 
 	add_hfs(volume, inFile, argv[2]);
@@ -129,6 +130,17 @@ void cmd_chmod(Volume* volume, int argc, const char *argv[]) {
 	if(argc > 2) {
 		sscanf(argv[1], "%o", &mode);
 		chmodFile(argv[2], mode, volume);
+	} else {
+		printf("Not enough arguments\n");
+	}
+}
+
+void cmd_chown(Volume* volume, int argc, const char *argv[]) {
+	uint32_t owner = 0, group = 0;
+
+	if(argc > 2) {
+		sscanf(argv[1], "%u:%u", &owner, &group);
+		chownFile(argv[2], owner, group, volume);
 	} else {
 		printf("Not enough arguments\n");
 	}
@@ -261,7 +273,7 @@ int main(int argc, const char *argv[]) {
 	TestByteOrder();
 
 	if(argc < 3) {
-		printf("usage: %s <image-file> (-k <key>) <ls|cat|mv|symlink|mkdir|add|rm|chmod|extract|extractall|rmall|addall|grow|untar> <arguments>\n", argv[0]);
+		printf("usage: %s <image-file> (-k <key>) <ls|cat|mv|symlink|mkdir|add|rm|chmod|chown|extract|extractall|rmall|addall|grow|untar> <arguments>\n", argv[0]);
 		return 0;
 	}
 
@@ -309,6 +321,8 @@ int main(int argc, const char *argv[]) {
 			cmd_rm(volume, argc - argOff, argv + argOff);
 		} else if(strcmp(argv[argOff], "chmod") == 0) {
 			cmd_chmod(volume, argc - argOff, argv + argOff);
+		} else if(strcmp(argv[argOff], "chown") == 0) {
+			cmd_chown(volume, argc - argOff, argv + argOff);
 		} else if(strcmp(argv[argOff], "extract") == 0) {
 			cmd_extract(volume, argc - argOff, argv + argOff);
 		} else if(strcmp(argv[argOff], "extractall") == 0) {
