@@ -37,9 +37,9 @@ int main(int argc, char* argv[]) {
 	AbstractFile* in;
 	AbstractFile* out;
 	int hasKey;
-	
+
 	TestByteOrder();
-	
+
 	if(argc < 4) {
 		printf("usage: %s [extract|build|iso|dmg] <in> <out> (-k <key>) (partition)\n", argv[0]);
 		return 0;
@@ -56,11 +56,11 @@ int main(int argc, char* argv[]) {
 			hasKey = TRUE;
 		}
 	}
-	
+
 
 	if(strcmp(argv[1], "extract") == 0) {
 		partNum = -1;
-		
+
 		if(hasKey) {
 			if(argc > 6) {
 				sscanf(argv[6], "%d", &partNum);
@@ -78,6 +78,6 @@ int main(int argc, char* argv[]) {
 	} else if(strcmp(argv[1], "dmg") == 0) {
 		convertToDMG(in, out);
 	}
-	
+
 	return 0;
 }

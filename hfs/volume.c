@@ -6,18 +6,18 @@ void flipForkData(HFSPlusForkData* forkData) {
   FLIPENDIAN(forkData->logicalSize);
   FLIPENDIAN(forkData->clumpSize);
   FLIPENDIAN(forkData->totalBlocks);
-  
+
   flipExtentRecord(&forkData->extents);
 }
 
 static HFSPlusVolumeHeader* readVolumeHeader(io_func* io, off_t offset) {
   HFSPlusVolumeHeader* volumeHeader;
-  
+
   volumeHeader = (HFSPlusVolumeHeader*) malloc(sizeof(HFSPlusVolumeHeader));
-  
+
   if(!(READ(io, offset, sizeof(HFSPlusVolumeHeader), volumeHeader)))
     return NULL;
-    
+
   FLIPENDIAN(volumeHeader->signature);
   FLIPENDIAN(volumeHeader->version);
   FLIPENDIAN(volumeHeader->attributes);
@@ -38,23 +38,23 @@ static HFSPlusVolumeHeader* readVolumeHeader(io_func* io, off_t offset) {
   FLIPENDIAN(volumeHeader->nextCatalogID);
   FLIPENDIAN(volumeHeader->writeCount);
   FLIPENDIAN(volumeHeader->encodingsBitmap);
-  
-  
+
+
   flipForkData(&volumeHeader->allocationFile);
   flipForkData(&volumeHeader->extentsFile);
   flipForkData(&volumeHeader->catalogFile);
   flipForkData(&volumeHeader->attributesFile);
   flipForkData(&volumeHeader->startupFile);
- 
+
   return volumeHeader;
 }
 
 static int writeVolumeHeader(io_func* io, HFSPlusVolumeHeader* volumeHeaderToWrite, off_t offset) {
   HFSPlusVolumeHeader* volumeHeader;
-  
+
   volumeHeader = (HFSPlusVolumeHeader*) malloc(sizeof(HFSPlusVolumeHeader));
   memcpy(volumeHeader, volumeHeaderToWrite, sizeof(HFSPlusVolumeHeader));
-    
+
   FLIPENDIAN(volumeHeader->signature);
   FLIPENDIAN(volumeHeader->version);
   FLIPENDIAN(volumeHeader->attributes);
@@ -75,19 +75,19 @@ static int writeVolumeHeader(io_func* io, HFSPlusVolumeHeader* volumeHeaderToWri
   FLIPENDIAN(volumeHeader->nextCatalogID);
   FLIPENDIAN(volumeHeader->writeCount);
   FLIPENDIAN(volumeHeader->encodingsBitmap);
-  
-  
+
+
   flipForkData(&volumeHeader->allocationFile);
   flipForkData(&volumeHeader->extentsFile);
   flipForkData(&volumeHeader->catalogFile);
   flipForkData(&volumeHeader->attributesFile);
   flipForkData(&volumeHeader->startupFile);
-  
+
   if(!(WRITE(io, offset, sizeof(HFSPlusVolumeHeader), volumeHeader)))
     return FALSE;
-  
+
   free(volumeHeader);
- 
+
   return TRUE;
 }
 

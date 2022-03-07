@@ -23,7 +23,7 @@ void writeToFile(HFSPlusCatalogFile* file, AbstractFile* output, Volume* volume)
 	io_func* io;
 	off_t curPosition;
 	size_t bytesLeft;
-	
+
 	buffer = (unsigned char*) malloc(BUFSIZE);
 
 	if(file->permissions.ownerFlags & UF_COMPRESSED) {
@@ -46,7 +46,7 @@ void writeToFile(HFSPlusCatalogFile* file, AbstractFile* output, Volume* volume)
 
 		curPosition = 0;
 		bytesLeft = file->dataFork.logicalSize;
-	}	
+	}
 	while(bytesLeft > 0) {
 		if(bytesLeft > BUFSIZE) {
 			if(!READ(io, curPosition, BUFSIZE, buffer)) {
@@ -80,7 +80,7 @@ void writeToHFSFile(HFSPlusCatalogFile* file, AbstractFile* input, Volume* volum
 	off_t bytesLeft;
 
 	buffer = (unsigned char*) malloc(BUFSIZE);
-	
+
 	bytesLeft = input->getLength(input);
 
 	if(file->permissions.ownerFlags & UF_COMPRESSED) {
@@ -99,9 +99,9 @@ void writeToHFSFile(HFSPlusCatalogFile* file, AbstractFile* input, Volume* volum
 		}
 		allocate((RawFile*)io->data, bytesLeft);
 	}
-	
-	curPosition = 0;	
-	
+
+	curPosition = 0;
+
 	while(bytesLeft > 0) {
 		if(bytesLeft > BUFSIZE) {
 			if(input->read(input, buffer, BUFSIZE) != BUFSIZE) {
@@ -131,9 +131,9 @@ void writeToHFSFile(HFSPlusCatalogFile* file, AbstractFile* input, Volume* volum
 
 void get_hfs(Volume* volume, const char* inFileName, AbstractFile* output) {
 	HFSPlusCatalogRecord* record;
-	
+
 	record = getRecordFromPath(inFileName, volume, NULL, NULL);
-	
+
 	if(record != NULL) {
 		if(record->recordType == kHFSPlusFileRecord)
 			writeToFile((HFSPlusCatalogFile*)record,  output, volume);
@@ -145,16 +145,16 @@ void get_hfs(Volume* volume, const char* inFileName, AbstractFile* output) {
 		printf("No such file or directory\n");
 		exit(0);
 	}
-	
+
 	free(record);
 }
 
 int add_hfs(Volume* volume, AbstractFile* inFile, const char* outFileName) {
 	HFSPlusCatalogRecord* record;
 	int ret;
-	
+
 	record = getRecordFromPath(outFileName, volume, NULL, NULL);
-	
+
 	if(record != NULL) {
 		if(record->recordType == kHFSPlusFileRecord) {
 			writeToHFSFile((HFSPlusCatalogFile*)record, inFile, volume);
@@ -172,12 +172,12 @@ int add_hfs(Volume* volume, AbstractFile* inFile, const char* outFileName) {
 			ret = FALSE;
 		}
 	}
-	
+
 	inFile->close(inFile);
 	if(record != NULL) {
 		free(record);
 	}
-	
+
 	return ret;
 }
 
@@ -187,11 +187,11 @@ void grow_hfs(Volume* volume, uint64_t newSize) {
 	uint64_t newMapSize;
 	uint64_t i;
 	unsigned char zero;
-	
-	zero = 0;	
-	
+
+	zero = 0;
+
 	newBlocks = newSize / volume->volumeHeader->blockSize;
-	
+
 	if(newBlocks <= volume->volumeHeader->totalBlocks) {
 		printf("Cannot shrink volume\n");
 		return;
@@ -199,36 +199,36 @@ void grow_hfs(Volume* volume, uint64_t newSize) {
 
 	blocksToGrow = newBlocks - volume->volumeHeader->totalBlocks;
 	newMapSize = newBlocks / 8;
-	
+
 	if(volume->volumeHeader->allocationFile.logicalSize < newMapSize) {
 		if(volume->volumeHeader->freeBlocks
 		   < ((newMapSize - volume->volumeHeader->allocationFile.logicalSize) / volume->volumeHeader->blockSize)) {
 			printf("Not enough room to allocate new allocation map blocks\n");
 			exit(0);
 		}
-		
+
 		allocate((RawFile*) (volume->allocationFile->data), newMapSize);
 	}
-	
-	/* unreserve last block */	
+
+	/* unreserve last block */
 	setBlockUsed(volume, volume->volumeHeader->totalBlocks - 1, 0);
 	/* don't need to increment freeBlocks because we will allocate another alternate volume header later on */
-	
+
 	/* "unallocate" the new blocks */
 	for(i = ((volume->volumeHeader->totalBlocks / 8) + 1); i < newMapSize; i++) {
 		ASSERT(WRITE(volume->allocationFile, i, 1, &zero), "WRITE");
 	}
-	
+
 	/* grow backing store size */
 	ASSERT(WRITE(volume->image, newSize - 1, 1, &zero), "WRITE");
-	
+
 	/* write new volume information */
 	volume->volumeHeader->totalBlocks = newBlocks;
 	volume->volumeHeader->freeBlocks += blocksToGrow;
-	
-	/* reserve last block */	
+
+	/* reserve last block */
 	setBlockUsed(volume, volume->volumeHeader->totalBlocks - 1, 1);
-	
+
 	updateVolume(volume);
 }
 
@@ -240,18 +240,18 @@ void removeAllInFolder(HFSCatalogNodeID folderID, Volume* volume, const char* pa
 	char* pathComponent;
 	int pathLen;
 	char isRoot;
-	
+
 	HFSPlusCatalogFolder* folder;
 	theList = list = getFolderContents(folderID, volume);
-	
+
 	strcpy(fullName, parentName);
 	pathComponent = fullName + strlen(fullName);
-	
+
 	isRoot = FALSE;
 	if(strcmp(fullName, "/") == 0) {
 		isRoot = TRUE;
 	}
-	
+
 	while(list != NULL) {
 		name = unicodeToAscii(&list->name);
 		if(isRoot && (name[0] == '\0' || strncmp(name, ".HFS+ Private Directory Data", sizeof(".HFS+ Private Directory Data") - 1) == 0)) {
@@ -259,10 +259,10 @@ void removeAllInFolder(HFSCatalogNodeID folderID, Volume* volume, const char* pa
 			list = list->next;
 			continue;
 		}
-		
+
 		strcpy(pathComponent, name);
 		pathLen = strlen(fullName);
-		
+
 		if(list->record->recordType == kHFSPlusFolderRecord) {
 			folder = (HFSPlusCatalogFolder*)list->record;
 			fullName[pathLen] = '/';
@@ -272,13 +272,13 @@ void removeAllInFolder(HFSCatalogNodeID folderID, Volume* volume, const char* pa
 			printf("%s\n", fullName);
 			removeFile(fullName, volume);
 		}
-		
+
 		free(name);
 		list = list->next;
 	}
-	
+
 	releaseCatalogRecordList(theList);
-	
+
 	if(!isRoot) {
 		*(pathComponent - 1) = '\0';
 		printf("%s\n", fullName);
@@ -295,36 +295,36 @@ void addAllInFolder(HFSCatalogNodeID folderID, Volume* volume, const char* paren
 	char testBuffer[1024];
 	char* pathComponent;
 	int pathLen;
-	
+
 	char* name;
-	
+
 	DIR* dir;
 	DIR* tmp;
-	
+
 	HFSCatalogNodeID cnid;
-	
+
 	struct dirent* ent;
-	
+
 	AbstractFile* file;
 	HFSPlusCatalogFile* outFile;
-	
+
 	strcpy(fullName, parentName);
 	pathComponent = fullName + strlen(fullName);
-	
+
 	ASSERT(getcwd(cwd, 1024) != NULL, "cannot get current working directory");
-	
+
 	theList = list = getFolderContents(folderID, volume);
-	
+
 	ASSERT((dir = opendir(cwd)) != NULL, "opendir");
-	
+
 	while((ent = readdir(dir)) != NULL) {
 		if(ent->d_name[0] == '.' && (ent->d_name[1] == '\0' || (ent->d_name[1] == '.' && ent->d_name[2] == '\0'))) {
 			continue;
 		}
-		
+
 		strcpy(pathComponent, ent->d_name);
 		pathLen = strlen(fullName);
-		
+
 		cnid = 0;
 		list = theList;
 		while(list != NULL) {
@@ -338,7 +338,7 @@ void addAllInFolder(HFSCatalogNodeID folderID, Volume* volume, const char* paren
 			free(name);
 			list = list->next;
 		}
-		
+
         struct stat st;
         ASSERT (lstat(ent->d_name, &st) == 0, "lstat");
 
@@ -384,11 +384,11 @@ void addAllInFolder(HFSCatalogNodeID folderID, Volume* volume, const char* paren
         else if((tmp = opendir(ent->d_name)) != NULL) {
 			closedir(tmp);
 			printf("folder: %s\n", fullName); fflush(stdout);
-			
+
 			if(cnid == 0) {
 				cnid = newFolder(fullName, volume);
 			}
-			
+
 			fullName[pathLen] = '/';
 			fullName[pathLen + 1] = '\0';
 			ASSERT(chdir(ent->d_name) == 0, "chdir");
@@ -405,7 +405,7 @@ void addAllInFolder(HFSCatalogNodeID folderID, Volume* volume, const char* paren
 			writeToHFSFile(outFile, file, volume);
 			file->close(file);
 			free(outFile);
-			
+
             /* Copy permissions from the source file */
             struct stat st;
             ASSERT (lstat(ent->d_name, &st) == 0, "lstat");
@@ -444,9 +444,9 @@ void addAllInFolder(HFSCatalogNodeID folderID, Volume* volume, const char* paren
 			}
 		}
 	}
-	
+
 	closedir(dir);
-	
+
 	releaseCatalogRecordList(theList);
 }
 
@@ -459,11 +459,11 @@ void extractAllInFolder(HFSCatalogNodeID folderID, Volume* volume) {
 	HFSPlusCatalogFile* file;
 	AbstractFile* outFile;
 	struct stat status;
-	
+
 	ASSERT(getcwd(cwd, 1024) != NULL, "cannot get current working directory");
-	
+
 	theList = list = getFolderContents(folderID, volume);
-	
+
 	while(list != NULL) {
 		name = unicodeToAscii(&list->name);
 		if(strncmp(name, ".HFS+ Private Directory Data", sizeof(".HFS+ Private Directory Data") - 1) == 0 || name[0] == '\0') {
@@ -471,7 +471,7 @@ void extractAllInFolder(HFSCatalogNodeID folderID, Volume* volume) {
 			list = list->next;
 			continue;
 		}
-		
+
 		if(list->record->recordType == kHFSPlusFolderRecord) {
 			folder = (HFSPlusCatalogFolder*)list->record;
 			printf("folder: %s\n", name);
@@ -492,7 +492,7 @@ void extractAllInFolder(HFSCatalogNodeID folderID, Volume* volume) {
 				printf("WARNING: cannot fopen %s\n", name);
 			}
 		}
-		
+
 		free(name);
 		list = list->next;
 	}
@@ -506,14 +506,14 @@ void addall_hfs(Volume* volume, const char* dirToMerge, const char* dest) {
 	char cwd[1024];
 	char initPath[1024];
 	int lastCharOfPath;
-	
+
 	ASSERT(getcwd(cwd, 1024) != NULL, "cannot get current working directory");
-	
+
 	if(chdir(dirToMerge) != 0) {
 		printf("Cannot open that directory: %s\n", dirToMerge);
 		exit(0);
 	}
-	
+
 	record = getRecordFromPath(dest, volume, &name, NULL);
 	strcpy(initPath, dest);
 	lastCharOfPath = strlen(dest) - 1;
@@ -521,10 +521,10 @@ void addall_hfs(Volume* volume, const char* dirToMerge, const char* dest) {
 		initPath[lastCharOfPath + 1] = '/';
 		initPath[lastCharOfPath + 2] = '\0';
 	}
-	
+
 	if(record != NULL) {
 		if(record->recordType == kHFSPlusFolderRecord)
-			addAllInFolder(((HFSPlusCatalogFolder*)record)->folderID, volume, initPath);  
+			addAllInFolder(((HFSPlusCatalogFolder*)record)->folderID, volume, initPath);
 		else {
 			printf("Not a folder\n");
 			exit(0);
@@ -533,10 +533,10 @@ void addall_hfs(Volume* volume, const char* dirToMerge, const char* dest) {
 		printf("No such file or directory\n");
 		exit(0);
 	}
-	
+
 	ASSERT(chdir(cwd) == 0, "chdir");
 	free(record);
-	
+
 }
 
 int copyAcrossVolumes(Volume* volume1, Volume* volume2, char* path1, char* path2) {
@@ -544,11 +544,11 @@ int copyAcrossVolumes(Volume* volume1, Volume* volume2, char* path1, char* path2
 	size_t bufferSize;
 	AbstractFile* tmpFile;
 	int ret;
-	
+
 	buffer = malloc(1);
 	bufferSize = 0;
 	tmpFile = createAbstractFileFromMemoryFile((void**)&buffer, &bufferSize);
-	
+
 	if(!silence)
 	{
 		printf("retrieving... "); fflush(stdout);
@@ -568,9 +568,9 @@ int copyAcrossVolumes(Volume* volume1, Volume* volume2, char* path1, char* path2
 	{
 		printf("done\n");
 	}
-	
+
 	free(buffer);
-	
+
 	return ret;
 }
 
@@ -583,9 +583,9 @@ void displayFolder(HFSCatalogNodeID folderID, Volume* volume) {
 	struct tm *date;
 	HFSPlusDecmpfs* compressData;
 	size_t attrSize;
-	
+
 	theList = list = getFolderContents(folderID, volume);
-	
+
 	while(list != NULL) {
 		if(list->record->recordType == kHFSPlusFolderRecord) {
 			folder = (HFSPlusCatalogFolder*)list->record;
@@ -609,7 +609,7 @@ void displayFolder(HFSCatalogNodeID folderID, Volume* volume) {
 			}
 			fileTime = APPLE_TO_UNIX_TIME(file->contentModDate);
 		}
-			
+
 		date = localtime(&fileTime);
 		if(date != NULL) {
 			printf("%2d/%2d/%4d %02d:%02d ", date->tm_mon, date->tm_mday, date->tm_year + 1900, date->tm_hour, date->tm_min);
@@ -619,10 +619,10 @@ void displayFolder(HFSCatalogNodeID folderID, Volume* volume) {
 
 		printUnicode(&list->name);
 		printf("\n");
-		
+
 		list = list->next;
 	}
-	
+
 	releaseCatalogRecordList(theList);
 }
 
@@ -630,7 +630,7 @@ void displayFileLSLine(Volume* volume, HFSPlusCatalogFile* file, const char* nam
 	time_t fileTime;
 	struct tm *date;
 	HFSPlusDecmpfs* compressData;
-	
+
 	printf("%06o ", file->permissions.fileMode);
 	printf("%3d ", file->permissions.ownerID);
 	printf("%3d ", file->permissions.groupID);
@@ -663,8 +663,8 @@ void displayFileLSLine(Volume* volume, HFSPlusCatalogFile* file, const char* nam
 			free(attrs->name);
 			free(attrs);
 			attrs = next;
-		}	
-	}	
+		}
+	}
 }
 
 void hfs_ls(Volume* volume, const char* path) {
@@ -672,11 +672,11 @@ void hfs_ls(Volume* volume, const char* path) {
 	char* name;
 
 	record = getRecordFromPath(path, volume, &name, NULL);
-	
+
 	printf("%s: \n", name);
 	if(record != NULL) {
 		if(record->recordType == kHFSPlusFolderRecord)
-			displayFolder(((HFSPlusCatalogFolder*)record)->folderID, volume);  
+			displayFolder(((HFSPlusCatalogFolder*)record)->folderID, volume);
 		else
 			displayFileLSLine(volume, (HFSPlusCatalogFile*)record, name);
 	} else {
@@ -684,7 +684,7 @@ void hfs_ls(Volume* volume, const char* path) {
 	}
 
 	printf("Total filesystem size: %lld, free: %lld\n", ((uint64_t)(volume->volumeHeader->totalBlocks - volume->volumeHeader->freeBlocks)) * volume->volumeHeader->blockSize, ((uint64_t)volume->volumeHeader->freeBlocks) * volume->volumeHeader->blockSize); // cast to uint64_t to be plateform independant.
-	
+
 	free(record);
 }
 
@@ -768,4 +768,3 @@ loop:
 	}
 
 }
-

@@ -36,9 +36,9 @@ uint32_t MKBlockChecksum(uint32_t* ckSum, const unsigned char* data, size_t len)
   uint32_t* curDWordPtr;
   uint32_t curDWord;
   uint32_t myCkSum;
-  
+
   myCkSum = *ckSum;
-   
+
   if(data) {
     curDWordPtr = (uint32_t*) data;
     while(curDWordPtr < (uint32_t*)(&data[len & 0xFFFFFFFC])) {
@@ -48,7 +48,7 @@ uint32_t MKBlockChecksum(uint32_t* ckSum, const unsigned char* data, size_t len)
       curDWordPtr++;
     }
   }
-  
+
   *ckSum = myCkSum;
   return myCkSum;
 }
@@ -130,11 +130,11 @@ static uint64_t crc_table[256] = {
 uint32_t CRC32Checksum(uint32_t* ckSum, const unsigned char *buf, size_t len)
 {
   uint32_t crc;
-  
+
   crc = *ckSum;
-  
+
   if (buf == NULL) return crc;
-  
+
   crc = crc ^ 0xffffffffL;
   while (len >= 8)
   {
@@ -147,9 +147,9 @@ uint32_t CRC32Checksum(uint32_t* ckSum, const unsigned char *buf, size_t len)
 DO1(buf);
     } while (--len);
   }
-  
+
   crc = crc ^ 0xffffffffL;
-  
+
   *ckSum = crc;
   return crc;
 }
@@ -177,7 +177,7 @@ A million repetitions of "a"
 
 #define blk0(i) ((endianness == IS_LITTLE_ENDIAN) ? (block->l[i] = (rol(block->l[i],24)&0xFF00FF00) \
     |(rol(block->l[i],8)&0x00FF00FF)) : block->l[i])
-   
+
 #define blk(i) (block->l[i&15] = rol(block->l[(i+13)&15]^block->l[(i+8)&15] \
     ^block->l[(i+2)&15]^block->l[i&15],1))
 
@@ -310,4 +310,3 @@ unsigned char finalcount[8];
     SHA1Transform(context->state, context->buffer);
 #endif
 }
-

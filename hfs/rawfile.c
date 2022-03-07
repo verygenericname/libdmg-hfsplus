@@ -135,7 +135,7 @@ int allocate(RawFile* rawFile, off_t size) {
 			extent = extent->next;
 
 			if(blocksToAllocate == 0)
-			{ 
+			{
 				free(lastExtent);
 			} else {
 				lastExtent->next = NULL;
@@ -312,7 +312,7 @@ int removeExtents(RawFile* rawFile) {
 	currentBlock = 0;
 	descriptor = (HFSPlusExtentDescriptor*) forkData->extents;
 
-	while(blocksLeft > 0) {       
+	while(blocksLeft > 0) {
 		if(currentExtent == 8) {
 			if(rawFile->volume->extentsTree == NULL) {
 				hfs_panic("no extents overflow file loaded yet!");

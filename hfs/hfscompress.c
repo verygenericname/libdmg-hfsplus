@@ -116,7 +116,7 @@ static void closeHFSPlusCompressed(io_func* io) {
 		if(data->blocks)
 			free(data->blocks);
 
-		data->decmpfs->magic = CMPFS_MAGIC; 
+		data->decmpfs->magic = CMPFS_MAGIC;
 		data->decmpfs->flags = 0x4;
 		data->decmpfsSize = sizeof(HFSPlusDecmpfs);
 
@@ -138,7 +138,7 @@ static void closeHFSPlusCompressed(io_func* io) {
 			data->blocks->blocks[i].offset = curFileOffset;
 			uLongf actualSize = (0x10000 * 1.1) + 12;
 			compress(buffer, &actualSize, data->cached + (0x10000 * i),
-					(data->decmpfs->size - (0x10000 * i)) > 0x10000 ? 0x10000 : (data->decmpfs->size - (0x10000 * i))); 
+					(data->decmpfs->size - (0x10000 * i)) > 0x10000 ? 0x10000 : (data->decmpfs->size - (0x10000 * i)));
 			data->blocks->blocks[i].size = actualSize;
 
 			// check if we can fit the whole thing into an inline extended attribute
@@ -167,7 +167,7 @@ static void closeHFSPlusCompressed(io_func* io) {
 		}
 
 		free(buffer);
-		
+
 		if(data->decmpfs->flags == 0x4) {
 			flipRsrcHead(&data->rsrcHead);
 			WRITE(data->io, 0, sizeof(HFSPlusCmpfRsrcHead), &data->rsrcHead);
@@ -289,4 +289,3 @@ io_func* openHFSPlusCompressed(Volume* volume, HFSPlusCatalogFile* file) {
 
 	return io;
 }
-

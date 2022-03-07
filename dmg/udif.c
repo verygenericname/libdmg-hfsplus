@@ -8,7 +8,7 @@ void flipUDIFChecksum(UDIFChecksum* o, char out) {
   int i;
 
   FLIPENDIAN(o->type);
-  
+
   if(out) {
     for(i = 0; i < o->size; i++) {
       FLIPENDIAN(o->data[i]);
@@ -24,10 +24,10 @@ void flipUDIFChecksum(UDIFChecksum* o, char out) {
 
 void readUDIFChecksum(AbstractFile* file, UDIFChecksum* o) {
   int i;
-  
+
   o->type = readUInt32(file);
   o->size = readUInt32(file);
-  
+
   for(i = 0; i < 0x20; i++) {
     o->data[i] = readUInt32(file);
   }
@@ -35,10 +35,10 @@ void readUDIFChecksum(AbstractFile* file, UDIFChecksum* o) {
 
 void writeUDIFChecksum(AbstractFile* file, UDIFChecksum* o) {
   int i;
-  
+
   writeUInt32(file, o->type);
-  writeUInt32(file, o->size);  
-  
+  writeUInt32(file, o->size);
+
   for(i = 0; i < o->size; i++) {
     writeUInt32(file, o->data[i]);
   }
@@ -60,35 +60,35 @@ void writeUDIFID(AbstractFile* file, UDIFID* o) {
 
 void readUDIFResourceFile(AbstractFile* file, UDIFResourceFile* o) {
   o->fUDIFSignature = readUInt32(file);
-  
+
   ASSERT(o->fUDIFSignature == 0x6B6F6C79, "readUDIFResourceFile - signature incorrect");
-  
+
   o->fUDIFVersion = readUInt32(file);
   o->fUDIFHeaderSize = readUInt32(file);
   o->fUDIFFlags = readUInt32(file);
-  
+
   o->fUDIFRunningDataForkOffset = readUInt64(file);
   o->fUDIFDataForkOffset = readUInt64(file);
   o->fUDIFDataForkLength = readUInt64(file);
   o->fUDIFRsrcForkOffset = readUInt64(file);
   o->fUDIFRsrcForkLength = readUInt64(file);
-  
+
   o->fUDIFSegmentNumber = readUInt32(file);
   o->fUDIFSegmentCount = readUInt32(file);
   readUDIFID(file, &(o->fUDIFSegmentID));
-  
+
   readUDIFChecksum(file, &(o->fUDIFDataForkChecksum));
-  
+
   o->fUDIFXMLOffset = readUInt64(file);
   o->fUDIFXMLLength = readUInt64(file);
-  
+
   ASSERT(file->read(file, &(o->reserved1), 0x78) == 0x78, "fread");
-  
+
   readUDIFChecksum(file, &(o->fUDIFMasterChecksum));
-  
+
   o->fUDIFImageVariant = readUInt32(file);
   o->fUDIFSectorCount = readUInt64(file);
-  
+
   o->reserved2 = readUInt32(file);
   o->reserved3 = readUInt32(file);
   o->reserved4 = readUInt32(file);
@@ -99,31 +99,30 @@ void writeUDIFResourceFile(AbstractFile* file, UDIFResourceFile* o) {
   writeUInt32(file, o->fUDIFVersion);
   writeUInt32(file, o->fUDIFHeaderSize);
   writeUInt32(file, o->fUDIFFlags);
-  
+
   writeUInt64(file, o->fUDIFRunningDataForkOffset);
   writeUInt64(file, o->fUDIFDataForkOffset);
   writeUInt64(file, o->fUDIFDataForkLength);
   writeUInt64(file, o->fUDIFRsrcForkOffset);
   writeUInt64(file, o->fUDIFRsrcForkLength);
-  
+
   writeUInt32(file, o->fUDIFSegmentNumber);
   writeUInt32(file, o->fUDIFSegmentCount);
   writeUDIFID(file, &(o->fUDIFSegmentID));
-  
+
   writeUDIFChecksum(file, &(o->fUDIFDataForkChecksum));
-  
+
   writeUInt64(file, o->fUDIFXMLOffset);
   writeUInt64(file, o->fUDIFXMLLength);
-  
+
   ASSERT(file->write(file, &(o->reserved1), 0x78) == 0x78, "fwrite");
-  
+
   writeUDIFChecksum(file, &(o->fUDIFMasterChecksum));
-  
+
   writeUInt32(file, o->fUDIFImageVariant);
   writeUInt64(file, o->fUDIFSectorCount);
-  
+
   writeUInt32(file, o->reserved2);
   writeUInt32(file, o->reserved3);
   writeUInt32(file, o->reserved4);
 }
-

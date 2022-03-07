@@ -78,7 +78,7 @@ static BTKey* attrKeyRead(off_t offset, io_func* io) {
 	FLIPENDIAN(key->fileID);
 	FLIPENDIAN(key->startBlock);
 	FLIPENDIAN(key->name.length);
-  
+
     ASSERT(key->name.length <= 255, "key->nodeName.length <= 255");
     ASSERT(key->keyLength >= (UNICODE_START - sizeof(uint16_t) + (key->name.length * sizeof(uint16_t))), "key->keyLength >= (UNICODE_START - sizeof(uint16_t) + (key->name.length * sizeof(uint16_t)))");
 
@@ -320,8 +320,8 @@ XAttrList* getAllExtendedAttributes(HFSCatalogNodeID CNID, Volume* volume) {
 		return NULL;
 
 	free(record);
-	
-	while(nodeNumber != 0) {    
+
+	while(nodeNumber != 0) {
 		descriptor = readBTNodeDescriptor(nodeNumber, tree);
 
 		while(recordNumber < descriptor->numRecords) {
@@ -367,4 +367,3 @@ XAttrList* getAllExtendedAttributes(HFSCatalogNodeID CNID, Volume* volume) {
 BTree* openAttributesTree(io_func* file) {
 	return openBTree(file, &attrCompare, &attrKeyRead, &attrKeyWrite, &attrKeyPrint, &attrDataRead);
 }
-

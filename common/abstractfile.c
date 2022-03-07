@@ -98,7 +98,7 @@ AbstractFile* createAbstractFileFromDummy() {
 }
 
 size_t memRead(AbstractFile* file, void* data, size_t len) {
-  MemWrapperInfo* info = (MemWrapperInfo*) (file->data); 
+  MemWrapperInfo* info = (MemWrapperInfo*) (file->data);
   if(info->bufferSize < (info->offset + len)) {
     len = info->bufferSize - info->offset;
   }
@@ -109,12 +109,12 @@ size_t memRead(AbstractFile* file, void* data, size_t len) {
 
 size_t memWrite(AbstractFile* file, const void* data, size_t len) {
   MemWrapperInfo* info = (MemWrapperInfo*) (file->data);
-  
+
   while((info->offset + (size_t)len) > info->bufferSize) {
     info->bufferSize <<= 1;
     *(info->buffer) = realloc(*(info->buffer), info->bufferSize);
   }
-  
+
   memcpy((void*)((uint8_t*)(*(info->buffer)) + (uint32_t)info->offset), data, len);
   info->offset += (size_t)len;
   return len;
@@ -145,7 +145,7 @@ AbstractFile* createAbstractFileFromMemory(void** buffer, size_t size) {
 	MemWrapperInfo* info;
 	AbstractFile* toReturn;
 	toReturn = (AbstractFile*) malloc(sizeof(AbstractFile));
-	
+
 	info = (MemWrapperInfo*) malloc(sizeof(MemWrapperInfo));
 	info->offset = 0;
 	info->buffer = buffer;
@@ -217,7 +217,7 @@ io_func* IOFuncFromAbstractFile(AbstractFile* file) {
 }
 
 size_t memFileRead(AbstractFile* file, void* data, size_t len) {
-  MemFileWrapperInfo* info = (MemFileWrapperInfo*) (file->data); 
+  MemFileWrapperInfo* info = (MemFileWrapperInfo*) (file->data);
   memcpy(data, (void*)((uint8_t*)(*(info->buffer)) + (uint32_t)info->offset), len);
   info->offset += (size_t)len;
   return len;
@@ -225,16 +225,16 @@ size_t memFileRead(AbstractFile* file, void* data, size_t len) {
 
 size_t memFileWrite(AbstractFile* file, const void* data, size_t len) {
   MemFileWrapperInfo* info = (MemFileWrapperInfo*) (file->data);
-  
+
   while((info->offset + (size_t)len) > info->actualBufferSize) {
 		info->actualBufferSize <<= 1;
     *(info->buffer) = realloc(*(info->buffer), info->actualBufferSize);
   }
-  
+
   if((info->offset + (size_t)len) > (*(info->bufferSize))) {
 		*(info->bufferSize) = info->offset + (size_t)len;
 	}
-      
+
   memcpy((void*)((uint8_t*)(*(info->buffer)) + (uint32_t)info->offset), data, len);
   info->offset += (size_t)len;
   return len;
@@ -265,7 +265,7 @@ AbstractFile* createAbstractFileFromMemoryFile(void** buffer, size_t* size) {
 	MemFileWrapperInfo* info;
 	AbstractFile* toReturn;
 	toReturn = (AbstractFile*) malloc(sizeof(AbstractFile));
-	
+
 	info = (MemFileWrapperInfo*) malloc(sizeof(MemFileWrapperInfo));
 	info->offset = 0;
 	info->buffer = buffer;
@@ -290,7 +290,7 @@ AbstractFile* createAbstractFileFromMemoryFileBuffer(void** buffer, size_t* size
 	MemFileWrapperInfo* info;
 	AbstractFile* toReturn;
 	toReturn = (AbstractFile*) malloc(sizeof(AbstractFile));
-	
+
 	info = (MemFileWrapperInfo*) malloc(sizeof(MemFileWrapperInfo));
 	info->offset = 0;
 	info->buffer = buffer;
@@ -307,4 +307,3 @@ AbstractFile* createAbstractFileFromMemoryFileBuffer(void** buffer, size_t* size
 	toReturn->type = AbstractFileTypeMemFile;
 	return toReturn;
 }
-

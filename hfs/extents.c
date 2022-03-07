@@ -10,7 +10,7 @@ static inline void flipExtentDescriptor(HFSPlusExtentDescriptor* extentDescripto
 void flipExtentRecord(HFSPlusExtentRecord* extentRecord) {
   HFSPlusExtentDescriptor *extentDescriptor;
   extentDescriptor = (HFSPlusExtentDescriptor*)extentRecord;
-  
+
   flipExtentDescriptor(&extentDescriptor[0]);
   flipExtentDescriptor(&extentDescriptor[1]);
   flipExtentDescriptor(&extentDescriptor[2]);
@@ -24,10 +24,10 @@ void flipExtentRecord(HFSPlusExtentRecord* extentRecord) {
 static int extentCompare(BTKey* vLeft, BTKey* vRight) {
   HFSPlusExtentKey* left;
   HFSPlusExtentKey* right;
-  
+
   left = (HFSPlusExtentKey*) vLeft;
   right =(HFSPlusExtentKey*) vRight;
-  
+
   if(left->forkType < right->forkType) {
     return -1;
   } else if(left->forkType > right->forkType) {
@@ -59,58 +59,58 @@ static int extentCompare(BTKey* vLeft, BTKey* vRight) {
 
 static BTKey* extentKeyRead(off_t offset, io_func* io) {
   HFSPlusExtentKey* key;
-  
+
   key = (HFSPlusExtentKey*) malloc(sizeof(HFSPlusExtentKey));
-  
+
   if(!READ(io, offset, sizeof(HFSPlusExtentKey), key))
     return NULL;
-  
+
   FLIPENDIAN(key->keyLength);
   FLIPENDIAN(key->forkType);
   FLIPENDIAN(key->fileID);
   FLIPENDIAN(key->startBlock);
-  
+
   return (BTKey*)key;
 }
 
 static int extentKeyWrite(off_t offset, BTKey* toWrite, io_func* io) {
   HFSPlusExtentKey* key;
-  
+
   key = (HFSPlusExtentKey*) malloc(sizeof(HFSPlusExtentKey));
-  
+
   memcpy(key, toWrite, sizeof(HFSPlusExtentKey));
-  
+
   FLIPENDIAN(key->keyLength);
   FLIPENDIAN(key->forkType);
   FLIPENDIAN(key->fileID);
   FLIPENDIAN(key->startBlock);
-  
+
   if(!WRITE(io, offset, sizeof(HFSPlusExtentKey), key))
     return FALSE;
-    
+
   free(key);
-  
+
   return TRUE;
 }
 
 static void extentKeyPrint(BTKey* toPrint) {
   HFSPlusExtentKey* key;
-  
+
   key = (HFSPlusExtentKey*)toPrint;
-  
+
   printf("extent%d:%d:%d", key->forkType, key->fileID, key->startBlock);
 }
 
 static BTKey* extentDataRead(off_t offset, io_func* io) {
   HFSPlusExtentRecord* record;
-  
+
   record = (HFSPlusExtentRecord*) malloc(sizeof(HFSPlusExtentRecord));
-  
+
   if(!READ(io, offset, sizeof(HFSPlusExtentRecord), record))
     return NULL;
-    
+
   flipExtentRecord(record);
-  
+
   return (BTKey*)record;
 }
 
