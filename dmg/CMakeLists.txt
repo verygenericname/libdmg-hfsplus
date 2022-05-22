@@ -12,7 +12,6 @@ IF(NOT ZLIB_FOUND)
 ENDIF(NOT ZLIB_FOUND)
 
 include_directories(${ZLIB_INCLUDE_DIR})
-link_directories(${ZLIB_LIBRARIES})
 
 link_directories(${PROJECT_BINARY_DIR}/common ${PROJECT_BINARY_DIR}/hfs)
 
@@ -27,10 +26,10 @@ IF(OPENSSL_FOUND)
 	ENDIF(WIN32)
 ENDIF(OPENSSL_FOUND)
 
-target_link_libraries(dmg common hfs z)
+target_link_libraries(dmg common hfs ${ZLIB_LIBRARIES})
 
 add_executable(dmg-bin dmg.c)
-target_link_libraries (dmg-bin dmg)
+target_link_libraries(dmg-bin dmg)
 
 set_target_properties(dmg-bin PROPERTIES OUTPUT_NAME "dmg")
 

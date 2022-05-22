@@ -2,7 +2,7 @@ link_directories(${PROJECT_BINARY_DIR}/common ${PROJECT_BINARY_DIR}/hfs ${PROJEC
 
 add_executable(hdutil hdutil.c)
 
-target_link_libraries (hdutil dmg hfs common)
+target_link_libraries(hdutil dmg hfs common)
 
 install(TARGETS hdutil DESTINATION bin)
 
