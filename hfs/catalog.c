@@ -1199,11 +1199,11 @@ int chownPath(const char* pathName, uint32_t owner, uint32_t group, Volume* volu
 
 // Keep for library compatibility
 int chmodFile(const char* pathName, int mode, Volume* volume) {
-  chmodPath(pathName, mode, volume, FALSE);
+  return chmodPath(pathName, mode, volume, FALSE);
 }
 
 int chownFile(const char* pathName, uint32_t owner, uint32_t group, Volume* volume) {
-  chownPath(pathName, owner, group, volume, FALSE);
+  return chownPath(pathName, owner, group, volume, FALSE);
 }
 
 BTree* openCatalogTree(io_func* file) {
