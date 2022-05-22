@@ -46,13 +46,17 @@ int main(int argc, char* argv[]) {
 	}
 
 	if(!buildInOut(argv[2], argv[3], &in, &out)) {
-		return FALSE;
+		return 1;
 	}
 
 	hasKey = FALSE;
 	if(argc > 5) {
 		if(strcmp(argv[4], "-k") == 0) {
 			in = createAbstractFileFromFileVault(in, argv[5]);
+			if(in == NULL) {
+				fprintf(stderr, "error: Cannot open image-file.\n");
+				return 1;
+			}
 			hasKey = TRUE;
 		}
 	}
