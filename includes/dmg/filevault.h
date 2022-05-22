@@ -6,8 +6,18 @@
 
 #ifdef HAVE_CRYPT
 
+#ifdef USE_COMMONCRYPTO
+
+#include <CommonCrypto/CommonCrypto.h>
+
+typedef uint8_t AES_KEY[16];
+
+#else /* USE_COMMONCRYPTO */
+
 #include <openssl/hmac.h>
 #include <openssl/aes.h>
+
+#endif /* USE_COMMONCRYPTO */
 
 #define FILEVAULT_CIPHER_KEY_LENGTH	16
 #define FILEVAULT_CIPHER_BLOCKSIZE	16
@@ -79,7 +89,11 @@ typedef struct FileVaultInfo {
 
 	AbstractFile*	file;
 
+#ifdef USE_COMMONCRYPTO
+	uint8_t		hmacKey[20];
+#else
 	HMAC_CTX*	hmacCTX;
+#endif
 	AES_KEY		aesKey;
 	AES_KEY		aesEncKey;
 

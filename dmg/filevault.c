@@ -8,9 +8,29 @@
 
 #ifdef HAVE_CRYPT
 
+#ifdef USE_COMMONCRYPTO
+
+#include <CommonCrypto/CommonCrypto.h>
+
+#define AES_set_decrypt_key(in, len, out) (memcpy((out), (in), (len) / 8))
+#define AES_set_encrypt_key(in, len, out) (memcpy((out), (in), (len) / 8))
+
+#define AES_ENCRYPT kCCEncrypt
+#define AES_DECRYPT kCCDecrypt
+
+static inline void AES_cbc_encrypt(const void *in, void *out, size_t len, const AES_KEY *key, const void *iv, uint32_t mode)
+{
+	size_t tmp = 0;
+	CCCrypt(mode, kCCAlgorithmAES, 0, key, FILEVAULT_CIPHER_KEY_LENGTH, iv, in, len, out, len, &tmp);
+}
+
+#else /* USE_COMMONCRYPTO */
+
 #include <openssl/hmac.h>
 #include <openssl/aes.h>
 #include <openssl/evp.h>
+
+#endif
 
 #define CHUNKNO(oft, info) ((uint32_t)((oft)/info->blockSize))
 #define CHUNKOFFSET(oft, info) ((size_t)((oft) - ((off_t)(CHUNKNO(oft, info)) * (off_t)info->blockSize)))
@@ -51,9 +71,13 @@ static void writeChunk(FileVaultInfo* info) {
 	myChunk = info->curChunk;
 
 	FLIPENDIAN(myChunk);
-    HMAC_Init_ex(info->hmacCTX, NULL, 0, NULL, NULL);
+#ifdef USE_COMMONCRYPTO
+	CCHmac(kCCHmacAlgSHA1, info->hmacKey, sizeof(info->hmacKey), &myChunk, sizeof(uint32_t), msgDigest);
+#else
+	HMAC_Init_ex(info->hmacCTX, NULL, 0, NULL, NULL);
 	HMAC_Update(info->hmacCTX, (unsigned char *) &myChunk, sizeof(uint32_t));
 	HMAC_Final(info->hmacCTX, msgDigest, &msgDigestLen);
+#endif
 
 	AES_cbc_encrypt(info->chunk, buffer, info->blockSize, &(info->aesEncKey), msgDigest, AES_ENCRYPT);
 
@@ -85,9 +109,14 @@ static void cacheChunk(FileVaultInfo* info, uint32_t chunk) {
 	info->curChunk = chunk;
 
 	FLIPENDIAN(chunk);
-    HMAC_Init_ex(info->hmacCTX, NULL, 0, NULL, NULL);
+
+#ifdef USE_COMMONCRYPTO
+	CCHmac(kCCHmacAlgSHA1, info->hmacKey, sizeof(info->hmacKey), &chunk, sizeof(uint32_t), msgDigest);
+#else
+	HMAC_Init_ex(info->hmacCTX, NULL, 0, NULL, NULL);
 	HMAC_Update(info->hmacCTX, (unsigned char *) &chunk, sizeof(uint32_t));
 	HMAC_Final(info->hmacCTX, msgDigest, &msgDigestLen);
+#endif
 
 	AES_cbc_encrypt(buffer, info->chunk, info->blockSize, &(info->aesKey), msgDigest, AES_DECRYPT);
 }
@@ -177,7 +206,9 @@ void fvClose(AbstractFile* file) {
 		cacheChunk(info, 0);
 	}
 
+#ifndef USE_COMMONCRYPTO
 	HMAC_CTX_free(info->hmacCTX);
+#endif
 
 	if(info->headerDirty) {
 		if(info->version == 2) {
@@ -197,7 +228,9 @@ AbstractFile* createAbstractFileFromFileVault(AbstractFile* file, const char* ke
 	AbstractFile* toReturn;
 	uint64_t signature;
 	uint8_t aesKey[16];
+#ifndef USE_COMMONCRYPTO
 	uint8_t hmacKey[20];
+#endif
 
 	int i;
 
@@ -231,11 +264,16 @@ AbstractFile* createAbstractFileFromFileVault(AbstractFile* file, const char* ke
 	for(i = 0; i < 20; i++) {
 		unsigned int curByte;
 		sscanf(&(key[(16 * 2) + i * 2]), "%02x", &curByte);
+#ifdef USE_COMMONCRYPTO
+		info->
+#endif
 		hmacKey[i] = curByte;
 	}
 
-    info->hmacCTX = HMAC_CTX_new();
+#ifndef USE_COMMONCRYPTO
+	info->hmacCTX = HMAC_CTX_new();
 	HMAC_Init_ex(info->hmacCTX, hmacKey, sizeof(hmacKey), EVP_sha1(), NULL);
+#endif
 	AES_set_decrypt_key(aesKey, FILEVAULT_CIPHER_KEY_LENGTH * 8, &(info->aesKey));
 	AES_set_encrypt_key(aesKey, FILEVAULT_CIPHER_KEY_LENGTH * 8, &(info->aesEncKey));
 
